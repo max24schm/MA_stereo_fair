@@ -1,0 +1,75 @@
+---
+title: "Master's Thesis Analysis"
+author: "Maximilian Schmidt"
+date: "2023-04-20"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Packages and Notes
+The initial code for data analysis was structured and written according to the analysis plan. Any analyses that were conducted later based on the results of the planned analyses were labelled as additional.
+The package `data.table` is used for data wrangling and simple preliminary summary statistics.
+
+```{r for-readers, echo=FALSE, warning=FALSE}
+library(haven)
+library(data.table)
+library(car)
+```
+
+## Data Preparation
+The data sets of studies 1-5 were loaded and checked for the correct data formats, etc.
+```{r dataprep, echo=FALSE, warning=FALSE, error=FALSE, results='hide'}
+path = "C:/Users/Max/Documents/Uni/02 Master/Masterarbeit/Daten_MA/"
+data_raw = haven::read_sav(paste0(path,"Study1_anonymous.sav"))
+length(unique(data_raw$PID_after))
+head(data_raw)
+data<-data.table::as.data.table(data_raw)
+library(data.table) # code below only works when the package is loaded, since .N and .() cannot be retrieved from the package using ::
+#datab[,.(.N,mw=round(mean(datab$freunde,na.rm = T),2)), by = c("sport.jn", "bochum")]
+```
+
+
+## Descriptive Statistics
+```{r descriptives, echo=TRUE, warning=FALSE, error=FALSE}
+
+```
+
+## Analyses Study 1
+IV: dist_A x group_B 
+DV: cents
+Control: similarity_AB
+Random: ID x group
+```{r study1, echo=TRUE, warning=FALSE, error=FALSE}
+# assumptions
+# normality (residuals)
+#model1 <- lm(DV ~ IV)
+#car::qqPlot(model1)
+# homoscedasticity
+#ncvTest(model1)
+# graphic analysis
+#par(mfrow = c(2,2))
+#plot(model1)
+```
+
+## Analyses Study 2
+```{r study2, echo=TRUE, warning=FALSE, error=FALSE}
+
+```
+
+## Analyses Study 3
+```{r study3, echo=TRUE, warning=FALSE, error=FALSE}
+
+```
+
+## Analyses Study 4
+```{r study4, echo=TRUE, warning=FALSE, error=FALSE}
+
+```
+
+## Analyses Study 5
+```{r study5, echo=TRUE, warning=FALSE, error=FALSE}
+
+```
