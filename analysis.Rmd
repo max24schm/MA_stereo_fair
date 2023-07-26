@@ -12,11 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Packages and Notes
 The initial code for data analysis was structured and written according to the analysis plan. Any analyses that were conducted later based on the results of the planned analyses were labelled as additional.
 The package `data.table` is used for data wrangling and simple preliminary summary statistics.
+With the `report`package, the automated report of statistical specifications, tests and their results will be carried out for this analysis. Thereby, errors due to typos or an incomplete reporting of statistical measures are avoided.
 
 ```{r for-readers, echo=FALSE, warning=FALSE}
 library(haven)
 library(data.table)
 library(car)
+library(lmerTest)
+library(lavaan)
+library(report)
 ```
 
 ## Data Preparation
@@ -24,11 +28,17 @@ The data sets of studies 1-5 were loaded and checked for the correct data format
 ```{r dataprep, echo=FALSE, warning=FALSE, error=FALSE, results='hide'}
 path = "C:/Users/Max/Documents/Uni/02 Master/Masterarbeit/Daten_MA/"
 data_raw = haven::read_sav(paste0(path,"Study1_anonymous.sav"))
-length(unique(data_raw$PID_after))
 head(data_raw)
-data<-data.table::as.data.table(data_raw)
+length(unique(data_raw$PID_before)) # 799 instead of 800!
+data <- data.table::as.data.table(data_raw)
+data <- data[!PID_before %in% data[which(duplicated(data$PID_before)),PID_before][1]] # exclude rows with same PID --> now 798 unique rows
+data <- data[names(data) %in% "Observed"]
+
+
 library(data.table) # code below only works when the package is loaded, since .N and .() cannot be retrieved from the package using ::
 #datab[,.(.N,mw=round(mean(datab$freunde,na.rm = T),2)), by = c("sport.jn", "bochum")]
+
+# welche variablen muessen zentriert oder z.B. durch 10 geteilt werden (Skala)?
 ```
 
 
@@ -38,29 +48,53 @@ library(data.table) # code below only works when the package is loaded, since .N
 ```
 
 ## Analyses Study 1
-IV: dist_A x group_B 
+IV: dist_B x group_A 
 DV: cents
 Control: similarity_AB
 Random: ID x group
 ```{r study1, echo=TRUE, warning=FALSE, error=FALSE}
 # assumptions
 # normality (residuals)
-#model1 <- lm(DV ~ IV)
-#car::qqPlot(model1)
+#assumption_test_1 <- lm(DV ~ IV)
+#car::qqPlot(assumption_test_1)
 # homoscedasticity
-#ncvTest(model1)
+#ncvTest(assumption_test_1)
 # graphic analysis
 #par(mfrow = c(2,2))
-#plot(model1)
+#plot(assumption_test_1)
+
+model_1 <- lmerTest::lmer(cents ~ dist_B * group_A + similarity_AB + (1|ID) + (1|group), data = dat_study_1)
+
+summary(model_1)
+report::report(model_1)
+
+# einmal rechnen ohne similarity, einmal mit und ohne Interaktion?
 ```
 
 ## Analyses Study 2
+IV: dist_B x principle (factor w 7 levels) 
+DV: agreement
+Control: similarity_AB
+Random: ID x group
 ```{r study2, echo=TRUE, warning=FALSE, error=FALSE}
+model_2 <- lmerTest::lmer(agreement ~ dist_B * principle + similarity_AB + (1|ID) + (1|group), data = dat_study_2)
 
 ```
 
 ## Analyses Study 3
 ```{r study3, echo=TRUE, warning=FALSE, error=FALSE}
+# a person's beliefs predict their choice of distribution
+model_3 <- lmerTest::lmer(choice ~ dist_B + (1|ID), data = dat_study_3)
+# path analysis
+model4 = 'need ~ a*dist_B
+          fair ~ b*need + c*dist_B
+          ab := a*b
+          total := c + (a*b)'
+mfit = lavaan::sem(model4, data = dat_study_3,
+            se = "bootstrap")
+
+lavaan::parameterEstimates(mfit, ci = T, boot.ci.type = "bca.simple", rsquare=T)
+summary(mfit)
 
 ```
 
