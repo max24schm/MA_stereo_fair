@@ -27,8 +27,10 @@ library(dplyr)
 ## Data Preparation
 The data sets of studies 1-5 were loaded and checked for the correct data formats, etc.
 ### Study 1
-Prolific IDs were checked for duplicates, one was found: from 800 to 798 rows
-Variables from the 'Observed' condition were omitted
+*Prolific IDs were checked for duplicates, one was found: from 800 to 798 rows
+*Variables from the 'Observed' and 'Observed by group' conditions were omitted
+*Rows from condition 1 ('Private') only were included
+*Variables were prepared for the analysis
 ```{r dataprep, echo=FALSE, warning=FALSE, error=FALSE}
 path = "C:/Users/Max/Documents/Uni/02 Master/Masterarbeit/Daten_MA/"
 data_raw = haven::read_sav(paste0(path,"Study1_anonymous.sav"))
@@ -36,8 +38,19 @@ head(data_raw)
 length(unique(data_raw$PID_before)) # 799 instead of 800!
 data <- data.table::as.data.table(data_raw)
 data <- data[!PID_before %in% data[which(duplicated(data$PID_before)),PID_before][1]] # exclude rows with same PID --> now 798 unique rows
-data<- data |> dplyr::select(!dplyr::contains("Observed")) # if R version below 4.1.0 is used, old pipe needs to be used here: %>% # exclude variables from 'observed' condition
+data<- data |> dplyr::select(!dplyr::contains(c("Observed", "ByGroup", "Reviewer"))) # if R version below 4.1.0 is used, old pipe needs to be used here: %>% # exclude variables from other conditions
+data <- data[Condition %in% "1"] # 267 rows
+all(complete.cases(data)) # TRUE
 
+data[, a_mean := round((A_after/10),2)]  # participants' self-rated agency 
+data[, b_mean := round((B_after/10),2)]  # participants' self-rated beliefs
+
+DT.m1 = melt(DT, measure.vars = c("dob_child1", "dob_child2", "dob_child3"),
+               variable.name = "child", value.name = "dob")
+# By default, when one of id.vars or measure.vars is missing, the rest of the columns are automatically assigned to the missing argument.
+data_long = melt(data, measure = patterns("Private_", "(a_g[1-9]|a_g[1-9][0-9])", "(b_g[1-9]|b_g[1-9][0-9])"), value.name = c("allocation", "group_a", "group_b"))
+nrow(data_long[variable == 1]) # 267
+data_long[,soc_group := variable] # TODO: validieren, dass 16 groups auch stimmen! wurden die in der richtigen reihenfolge untereinander aufgelistet?
 
 # library(data.table) # code below only works when the package is loaded, since .N and .() cannot be retrieved from the package using ::
 #datab[,.(.N,mw=round(mean(datab$freunde,na.rm = T),2)), by = c("sport.jn", "bochum")]
@@ -48,7 +61,7 @@ data<- data |> dplyr::select(!dplyr::contains("Observed")) # if R version below 
 
 ## Descriptive Statistics
 ```{r descriptives, echo=TRUE, warning=FALSE, error=FALSE}
-
+# check mean and variance in sample's agency and beliefs, also describe the 16 groups
 ```
 
 ## Analyses Study 1
