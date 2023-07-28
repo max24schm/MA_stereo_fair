@@ -31,6 +31,7 @@ The data sets of studies 1-5 were loaded and checked for the correct data format
 *Variables from the 'Observed' and 'Observed by group' conditions were omitted
 *Rows from condition 1 ('Private') only were included
 *Variables were prepared for the analysis
+*Transformation of groups 1-16 from wide to long format
 ```{r dataprep, echo=FALSE, warning=FALSE, error=FALSE}
 path = "C:/Users/Max/Documents/Uni/02 Master/Masterarbeit/Daten_MA/"
 data_raw = haven::read_sav(paste0(path,"Study1_anonymous.sav"))
@@ -45,17 +46,34 @@ all(complete.cases(data)) # TRUE
 data[, a_mean := round((A_after/10),2)]  # participants' self-rated agency 
 data[, b_mean := round((B_after/10),2)]  # participants' self-rated beliefs
 
-DT.m1 = melt(DT, measure.vars = c("dob_child1", "dob_child2", "dob_child3"),
-               variable.name = "child", value.name = "dob")
-# By default, when one of id.vars or measure.vars is missing, the rest of the columns are automatically assigned to the missing argument.
-data_long = melt(data, measure = patterns("Private_", "(a_g[1-9]|a_g[1-9][0-9])", "(b_g[1-9]|b_g[1-9][0-9])"), value.name = c("allocation", "group_a", "group_b"))
+data_long = melt(data, measure = patterns("Ident_", "Private_", "(a_g[1-9]|a_g[1-9][0-9])", "(b_g[1-9]|b_g[1-9][0-9])"), value.name = c("g_ident", "allocation", "group_a", "group_b"))
 nrow(data_long[variable == 1]) # 267
-data_long[,soc_group := variable] # TODO: validieren, dass 16 groups auch stimmen! wurden die in der richtigen reihenfolge untereinander aufgelistet?
+data_long[,soc_group := variable] 
+
+#     belief 
+#1 blck 5.49
+#2 wht 4.56
+#3 poor 5.18
+#4 mid 4.85
+#5 rich 3.82
+#6 hisp 5.04
+#7 asia 5.26
+#8 dem 7.62
+#9 rep 2.15
+#10 gay 8.03
+#11 chr 2.03
+#12 lib 8.6
+#13 cons 1.52
+#14 work 4.37
+#15 trans 7.99
+#16 old 3.02 
+
+# TODO: Similarity variable as the difference between person a/b and group a/b
 
 # library(data.table) # code below only works when the package is loaded, since .N and .() cannot be retrieved from the package using ::
 #datab[,.(.N,mw=round(mean(datab$freunde,na.rm = T),2)), by = c("sport.jn", "bochum")]
 
-# welche variablen muessen zentriert oder z.B. durch 10 geteilt werden (Skala)?
+
 ```
 
 
